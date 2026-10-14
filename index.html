@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dia do Médico — Sorteio</title>
+<link rel="icon" href="logo.png">
+<style>
+  :root {
+    --verde: #00995d; --verde-esc: #0a5f3c; --verde-claro: #e6f5ee;
+    --ouro: #ffc72c; --texto: #1d2b24; --cinza: #6b7a72; --erro: #c62828;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; color: var(--texto); background: #f4f8f6; }
+  header { background: var(--verde); color: #fff; display: flex; align-items: center; gap: 16px; padding: 10px 20px; flex-wrap: wrap; }
+  header img { height: 46px; border-radius: 6px; }
+  header h1 { font-size: 1.3rem; margin: 0; flex: 1; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav button { background: transparent; border: 2px solid #fff6; color: #fff; padding: 8px 14px; border-radius: 999px; font-weight: 600; cursor: pointer; font-size: .95rem; }
+  nav button.ativo { background: #fff; color: var(--verde-esc); border-color: #fff; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  section[hidden] { display: none; }
+  .card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 10px #0001; margin-bottom: 18px; }
+  .btn { background: var(--verde); color: #fff; border: 0; border-radius: 10px; padding: 12px 20px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--verde-esc); }
+  .btn.sec { background: #fff; color: var(--verde-esc); border: 2px solid var(--verde); }
+  .btn.perigo { background: #fff; color: var(--erro); border: 2px solid var(--erro); }
+  .muted { color: var(--cinza); }
+  .erros { color: var(--erro); font-size: .9rem; max-height: 180px; overflow: auto; }
+
+  /* Presença (totem) */
+  #tab-presenca { text-align: center; }
+  #tab-presenca h2 { font-size: 2.2rem; color: var(--verde-esc); margin: 10px 0 4px; }
+  #crm { font-size: 3rem; text-align: center; width: min(420px, 100%); padding: 14px; border: 3px solid var(--verde); border-radius: 16px; letter-spacing: .1em; outline: none; }
+  #crm:focus { box-shadow: 0 0 0 6px #00995d33; }
+  #resposta { min-height: 190px; margin-top: 24px; }
+  .boasvindas { display: inline-block; padding: 24px 36px; border-radius: 18px; animation: surgir .4s ease-out; }
+  .boasvindas.ok { background: var(--verde-claro); border: 3px solid var(--verde); }
+  .boasvindas.ja { background: #fff8e1; border: 3px solid var(--ouro); }
+  .boasvindas.nao { background: #fdecea; border: 3px solid var(--erro); }
+  .boasvindas .nome { font-size: 2.2rem; font-weight: 800; color: var(--verde-esc); margin: 6px 0; }
+  .boasvindas .mes { font-size: 1.2rem; }
+  @keyframes surgir { from { transform: scale(.8); opacity: 0; } }
+
+  /* Tabelas */
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e3ebe7; }
+  th { color: var(--cinza); font-weight: 600; }
+  .barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  select, input[type=search] { padding: 10px; border-radius: 8px; border: 1px solid #c8d6cf; font-size: 1rem; }
+  .x { background: none; border: 0; color: var(--erro); cursor: pointer; font-size: 1.1rem; }
+
+  /* Escolha do mês */
+  .meses { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+  .mes-btn { background: #fff; border: 3px solid var(--verde); border-radius: 16px; padding: 18px 10px; cursor: pointer; text-align: center; transition: transform .15s; }
+  .mes-btn:hover { transform: translateY(-4px) rotate(-1deg); }
+  .mes-btn b { display: block; font-size: 1.3rem; color: var(--verde-esc); }
+  .mes-btn small { color: var(--cinza); }
+  .mes-btn.feito { background: var(--verde-claro); }
+  .mes-btn.feito small { color: var(--verde-esc); font-weight: 600; }
+  .mes-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+  /* Palco do sorteio */
+  #palco { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; text-align: center; padding: 20px;
+    color: #fff; background: radial-gradient(circle at 50% 40%, #11a86b 0%, #0a5f3c 55%, #052e1d 100%); overflow: hidden; }
+  #palco[hidden] { display: none; }
+  #palco img { height: 70px; border-radius: 10px; }
+  #palco-titulo { font-size: clamp(1.8rem, 5vw, 3.4rem); margin: 0; color: var(--ouro); text-shadow: 0 4px 0 #0004; }
+  #palco-info { font-size: 1.3rem; opacity: .85; margin: 0; }
+  #roleta { font-size: clamp(2rem, 6vw, 4.5rem); font-weight: 800; min-height: 1.4em; max-width: 95vw; }
+  #roleta.girando { filter: blur(1px); opacity: .9; }
+  #roleta .letra { display: inline-block; animation: pular 1s ease-in-out infinite, cor 3s linear infinite; }
+  #roleta.vencedor { animation: zoom .7s cubic-bezier(.2, 1.6, .4, 1); }
+  #parabens { font-size: clamp(1.4rem, 3vw, 2.2rem); color: var(--ouro); min-height: 1.3em; }
+  @keyframes pular { 0%, 100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-.25em) rotate(-6deg); } 75% { transform: translateY(.08em) rotate(5deg); } }
+  @keyframes cor { 0%, 100% { color: #fff; } 33% { color: var(--ouro); } 66% { color: #a7f3d0; } }
+  @keyframes zoom { from { transform: scale(.2) rotate(-8deg); opacity: 0; } }
+  .balao { position: absolute; bottom: -120px; font-size: 3.5rem; animation: subir linear forwards; pointer-events: none; }
+  @keyframes subir { to { transform: translateY(-120vh) rotate(25deg); } }
+  #palco .acoes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 2; }
+  #btn-sortear { font-size: 2rem; padding: 18px 56px; border-radius: 999px; background: var(--ouro); color: var(--verde-esc); border: 0; font-weight: 800; cursor: pointer; box-shadow: 0 8px 0 #b38a12; animation: pulsar 1.4s ease-in-out infinite; }
+  #btn-sortear:active { transform: translateY(6px); box-shadow: 0 2px 0 #b38a12; }
+  @keyframes pulsar { 50% { transform: scale(1.06); } }
+  #palco .btn.sec { background: #fff2; color: #fff; border-color: #fff8; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #roleta .letra, #btn-sortear, .balao { animation: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="Unimed Sergipe">
+  <h1>Dia do Médico · 24 de outubro</h1>
+  <nav>
+    <button data-tab="presenca">Presença</button>
+    <button data-tab="presentes">Presentes</button>
+    <button data-tab="sorteio">Sorteio</button>
+    <button data-tab="importar">Importar lista</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-presenca" hidden>
+    <div class="card">
+      <h2>Seja bem-vindo(a)! 🎉</h2>
+      <p class="muted">Digite seu CRM e tecle Enter para registrar sua presença</p>
+      <form id="form-crm">
+        <input id="crm" inputmode="numeric" autocomplete="off" placeholder="CRM" aria-label="CRM">
+      </form>
+      <div id="resposta" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="tab-presentes" hidden>
+    <div class="card">
+      <div class="barra">
+        <h2 style="margin:0;flex:1">Presentes: <span id="qtd-presentes">0</span> de <span id="qtd-medicos">0</span></h2>
+        <input type="search" id="busca" placeholder="Buscar nome ou CRM">
+        <select id="filtro-mes"><option value="">Todos os meses</option></select>
+        <button class="btn sec" id="exportar">Exportar CSV</button>
+      </div>
+      <table>
+        <thead><tr><th>Nome</th><th>CRM</th><th>Nascimento</th><th>Chegada</th><th></th></tr></thead>
+        <tbody id="lista-presentes"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="tab-sorteio" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">Escolha o mês do sorteio 🎂</h2>
+      <p class="muted">Concorrem os médicos presentes que fazem aniversário no mês escolhido.</p>
+      <div class="meses" id="meses"></div>
+    </div>
+  </section>
+
+  <section id="tab-importar" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">Importar lista de médicos</h2>
+      <p>Planilha Excel (.xlsx) ou CSV com as colunas <b>NOME</b>, <b>CRM</b> e <b>DATA DE NASCIMENTO</b> (dd/mm/aaaa).</p>
+      <div class="barra">
+        <input type="file" id="arquivo" accept=".xlsx,.xls,.csv">
+        <button class="btn sec" id="modelo">Baixar modelo</button>
+      </div>
+      <p id="import-status"></p>
+      <div id="import-erros" class="erros"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Zerar evento</h3>
+      <p class="muted">Apaga presenças e sorteios (a lista de médicos continua). Use antes do evento, após os testes.</p>
+      <button class="btn perigo" id="zerar">Zerar presenças e sorteios</button>
+    </div>
+  </section>
+</main>
+
+<div id="palco" hidden>
+  <img src="logo.png" alt="">
+  <h2 id="palco-titulo"></h2>
+  <p id="palco-info"></p>
+  <div id="roleta" aria-live="polite"></div>
+  <div id="parabens"></div>
+  <div class="acoes">
+    <button id="btn-sortear">SORTEAR!</button>
+    <button class="btn sec" id="btn-novo" hidden>Sortear outro (ausente no palco)</button>
+    <button class="btn sec" id="btn-tela">Tela cheia</button>
+    <button class="btn sec" id="btn-voltar">Voltar</button>
+  </div>
+</div>
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/confetti.browser.min.js"></script>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

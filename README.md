@@ -1,6 +1,6 @@
 # GLPI 100271 — Presença e Sorteio · Dia do Médico (24/10, Hotel Celi)
 
-Site estático em `site/` (HTML + JS puro, sem build). Bibliotecas ficam locais em `site/vendor/`, então funciona sem internet depois de aberto.
+Site estático (HTML + JS puro, sem build). Bibliotecas ficam locais em `vendor/`, então funciona sem internet depois de aberto.
 
 ## Telas
 - **Importar lista**: Excel/CSV com colunas `NOME`, `CRM`, `DATA DE NASCIMENTO` (botão "Baixar modelo").
@@ -18,9 +18,9 @@ A lista **não vai para o servidor**: fica no `localStorage` do navegador do com
 - Depois dos testes, use "Zerar presenças e sorteios".
 
 ## Publicar (grátis)
-**Vercel**: `npx vercel deploy site --prod` (ou arrastar a pasta `site` em vercel.com/new).
-**GitHub Pages**: criar repositório, subir o conteúdo de `site/`, Settings → Pages → Branch `main` / root.
-Também abre direto com duplo clique em `site/index.html`.
+**Vercel**: `npx vercel deploy --prod` (ou importar este repositório em vercel.com/new).
+**GitHub Pages**: criar repositório, Settings → Pages → Branch `main` / root.
+Também abre direto com duplo clique em `index.html`.
 
 ## Teste
-`node site/test.js` (regras de importação e sorteio).
+`node test.js` (regras de importação e sorteio).

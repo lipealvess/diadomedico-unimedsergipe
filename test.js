@@ -22,5 +22,6 @@ assert.deepStrictEqual(L.elegiveis(medicos, presentes, 1).map(m => m.nome), ['An
 assert.strictEqual(L.sortear(medicos, presentes, 1, [], n => 0).nome, 'Ana Souza');
 assert.strictEqual(L.sortear(medicos, presentes, 1, ['1234'], n => 0), null); // já sorteada
 assert.strictEqual(L.sortear(medicos, presentes, 3, [], n => 0), null);       // ninguém de março
+assert.deepStrictEqual(L.elegiveis(medicos, presentes, 0, ['1234']).map(m => m.nome), ['Carla Dias']); // Diversos
 
 console.log('ok');

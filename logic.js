@@ -46,8 +46,9 @@ const Logic = (() => {
     return { medicos: [...medicos.values()], erros };
   }
 
+  // mes 0 = sorteio Diversos (todos os presentes)
   const elegiveis = (medicos, presentes, mes, excluir = []) =>
-    medicos.filter(m => m.nasc.m === mes && presentes[m.crm] && !excluir.includes(m.crm));
+    medicos.filter(m => (mes === 0 || m.nasc.m === mes) && presentes[m.crm] && !excluir.includes(m.crm));
 
   // rand(n) -> inteiro em [0, n)
   function sortear(medicos, presentes, mes, excluir, rand) {

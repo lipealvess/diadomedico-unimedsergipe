@@ -59,6 +59,8 @@
   .mes-btn small { color: var(--cinza); }
   .mes-btn.feito { background: var(--verde-claro); }
   .mes-btn.feito small { color: var(--verde-esc); font-weight: 600; }
+  .mes-btn.diversos { width: 100%; background: linear-gradient(90deg, #fff8e1, #e6f5ee); border-color: var(--ouro); }
+  .mes-btn.diversos b { font-size: 1.6rem; }
   .mes-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
   /* Palco do sorteio */
@@ -130,6 +132,11 @@
   </section>
 
   <section id="tab-sorteio" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">Sorteio Diversos 🎁</h2>
+      <p class="muted">Todos os médicos presentes concorrem. Pode sortear quantas vezes quiser — quem já ganhou no Diversos sai da lista.</p>
+      <button class="mes-btn diversos" id="diversos"><b>🎁 Sortear Diversos</b><small></small></button>
+    </div>
     <div class="card">
       <h2 style="margin-top:0">Escolha o mês do sorteio 🎂</h2>
       <p class="muted">Concorrem os médicos presentes que fazem aniversário no mês escolhido.</p>

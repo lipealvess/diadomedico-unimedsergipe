@@ -63,7 +63,7 @@ $('#form-crm').onsubmit = e => {
   r.innerHTML = `<div class="boasvindas ok"><div>Bem-vindo(a)!</div><div class="nome">${esc(m.nome)}</div>
     <div class="mes">${mes}</div><p><button class="btn sec" id="nao-sou-eu">Não sou eu — desfazer</button></p></div>`;
   $('#nao-sou-eu').onclick = () => { delete st.presentes[crm]; salvar(); render(); r.innerHTML = ''; $('#crm').focus(); };
-  confetti({ particleCount: 90, spread: 80, origin: { y: .7 }, colors: ['#00995d', '#ffc72c', '#ffffff'] });
+  confetti({ particleCount: 90, spread: 80, origin: { y: .7 }, colors: ['#ff4d6d', '#ff9f1c', '#ffd60a', '#3a86ff', '#8338ec', '#06d6a0'] });
 };
 
 // ---------- lista de presentes ----------
@@ -94,6 +94,7 @@ function baixar(nome, texto) {
 }
 $('#exportar').onclick = () => {
   const ganhou = {};
+  (st.sorteios[0] ?? []).forEach(crm => ganhou[crm] = 'Diversos');
   for (let m = 1; m <= 12; m++) { const v = vencedor(m); if (v) ganhou[v.crm] = MESES[m - 1]; }
   const linhas = st.medicos.filter(m => st.presentes[m.crm]).map(m =>
     [m.nome, m.crm, fmtData(m.nasc), new Date(st.presentes[m.crm]).toLocaleString('pt-BR'), ganhou[m.crm] ?? ''].join(';'));
@@ -137,6 +138,9 @@ $('#zerar').onclick = () => {
 
 // ---------- sorteio: escolha do mês ----------
 function renderMeses() {
+  const nd = Logic.elegiveis(st.medicos, st.presentes, 0, st.sorteios[0]).length, jd = (st.sorteios[0] ?? []).length;
+  $('#diversos').disabled = !nd;
+  $('#diversos small').textContent = `${nd} presente(s) concorrendo` + (jd ? ` · ${jd} já sorteado(s)` : '');
   $('#meses').innerHTML = MESES.map((nome, i) => {
     const mes = i + 1, n = Logic.elegiveis(st.medicos, st.presentes, mes).length, v = vencedor(mes);
     return `<button class="mes-btn ${v ? 'feito' : ''}" data-mes="${mes}" ${!n && !v ? 'disabled' : ''}>
@@ -144,14 +148,16 @@ function renderMeses() {
   }).join('');
 }
 $('#meses').onclick = e => { const b = e.target.closest('[data-mes]'); if (b) abrirPalco(+b.dataset.mes); };
+$('#diversos').onclick = () => abrirPalco(0);
 
 // ---------- sorteio: palco ----------
 let mesAtual, girando = false;
 
 function abrirPalco(mes) {
   mesAtual = mes;
-  const n = Logic.elegiveis(st.medicos, st.presentes, mes).length, v = vencedor(mes);
-  $('#palco-titulo').textContent = `Aniversariantes de ${MESES[mes - 1]} 🎂`;
+  // Diversos pode ser sorteado várias vezes: sempre abre pronto para um novo sorteio
+  const n = Logic.elegiveis(st.medicos, st.presentes, mes, mes ? [] : st.sorteios[0]).length, v = mes ? vencedor(mes) : null;
+  $('#palco-titulo').textContent = mes ? `Aniversariantes de ${MESES[mes - 1]} 🎂` : 'Sorteio Diversos 🎁';
   $('#palco-info').textContent = `${n} médico(s) presente(s) concorrendo`;
   $('#roleta').className = ''; $('#roleta').textContent = v ? '' : '???';
   $('#parabens').textContent = '';
@@ -173,7 +179,7 @@ async function sortear() {
   const excluir = st.sorteios[mesAtual] ?? [];
   const lista = Logic.elegiveis(st.medicos, st.presentes, mesAtual, excluir);
   const v = Logic.sortear(st.medicos, st.presentes, mesAtual, excluir, rand);
-  if (!v) { $('#roleta').textContent = 'Nenhum aniversariante disponível 😢'; return; }
+  if (!v) { $('#roleta').textContent = mesAtual ? 'Nenhum aniversariante disponível 😢' : 'Todos os presentes já foram sorteados 😢'; return; }
   // grava antes da animação: recarregar a página não permite "sortear de novo"
   st.sorteios[mesAtual] = [...excluir, v.crm];
   salvar();
@@ -197,7 +203,11 @@ function revelar(v, festa) {
   roleta.innerHTML = [...v.nome].map((c, i) =>
     c === ' ' ? ' ' : `<span class="letra" style="animation-delay:${(i * .06).toFixed(2)}s">${esc(c)}</span>`).join('');
   $('#parabens').textContent = `🎉 Parabéns! CRM ${v.crm} 🎉`;
-  $('#btn-novo').hidden = false;
+  if (mesAtual) $('#btn-novo').hidden = false;
+  else {
+    $('#btn-sortear').hidden = false;
+    $('#palco-info').textContent = `${Logic.elegiveis(st.medicos, st.presentes, 0, st.sorteios[0]).length} médico(s) ainda concorrendo`;
+  }
   if (festa) { fanfarra(); fogos(); baloes(); }
 }
 
